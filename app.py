@@ -1,5 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
 import pandas as pd
 import json
 import re
@@ -261,16 +260,36 @@ a.custom-open-btn-inline:active {
 # =========================
 
 def get_twitter_url(tweet_id: str) -> str:
-    fallback = f"https%3A%2F%2Fx.com%2Fi%2Fweb%2Fstatus%2F{tweet_id}"
+    return f"https://twitter.com/i/web/status/{tweet_id}"
+
+def _open_onclick(tweet_id: str) -> str:
+    """
+    onclick that tries the twitter:// native scheme on Android,
+    falls back to opening the https URL in a new tab on other platforms.
+    The href on the anchor acts as a last-resort fallback if JS is unavailable.
+    """
+    native = f"twitter://status?id={tweet_id}"
+    web    = f"https://twitter.com/i/web/status/{tweet_id}"
     return (
-        f"intent://twitter.com/i/web/status/{tweet_id}"
-        f"#Intent;package=com.twitter.android;scheme=https;"
-        f"S.browser_fallback_url={fallback};end;"
+        "event.preventDefault();"
+        "if(/android/i.test(navigator.userAgent)){"
+        f"  var t=setTimeout(function(){{window.location.href='{web}';}},1500);"
+        "  document.addEventListener('visibilitychange',function h(){"
+        "    if(document.hidden){clearTimeout(t);}"
+        "    document.removeEventListener('visibilitychange',h);"
+        "  });"
+        f"  window.location.href='{native}';"
+        "} else {"
+        f"  window.open('{web}','_blank');"
+        "}"
     )
 
 def tw_open_button(tweet_id: str, label: str = "🐦 Open in X"):
-    url = get_twitter_url(tweet_id)
-    st.markdown(f'<a href="{url}" class="custom-open-btn">{label}</a>', unsafe_allow_html=True)
+    web_url = get_twitter_url(tweet_id)
+    st.markdown(
+        f'<a href="{web_url}" onclick="{_open_onclick(tweet_id)}" class="custom-open-btn">{label}</a>',
+        unsafe_allow_html=True,
+    )
 
 def extract_hashtags(text: str):
     return [t.lower() for t in re.findall(r"#(\w+)", text)]
@@ -594,7 +613,12 @@ def render_card_grid(filtered_df, per_page, page_key, key_prefix):
                 st.markdown('</div>', unsafe_allow_html=True)
 
             with c_open:
-                btn_html = f'<a href="{get_twitter_url(row["tweet_id"])}" class="custom-open-btn-inline">Open</a>'
+                _tid = row["tweet_id"]
+                btn_html = (
+                    f'<a href="{get_twitter_url(_tid)}" '
+                    f'onclick="{_open_onclick(_tid)}" '
+                    f'class="custom-open-btn-inline">Open</a>'
+                )
                 st.markdown(btn_html, unsafe_allow_html=True)
 
     pagination_row("bot")

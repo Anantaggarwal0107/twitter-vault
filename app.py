@@ -275,7 +275,7 @@ def _open_onclick(tweet_id: str) -> str:
         "if(/android/i.test(navigator.userAgent)){"
         f"  window.open('{native}','_blank');"
         "} else {"
-        f"  window.open('{web}','_blank');"
+        f"  window.open('{native}','_blank');"
         "}"
     )
 

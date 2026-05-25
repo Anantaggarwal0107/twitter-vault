@@ -261,11 +261,16 @@ a.custom-open-btn-inline:active {
 # =========================
 
 def get_twitter_url(tweet_id: str) -> str:
-    return f"intent://twitter.com/i/web/status/{tweet_id}#Intent;package=com.twitter.android;scheme=https;end;"
+    fallback = f"https%3A%2F%2Fx.com%2Fi%2Fweb%2Fstatus%2F{tweet_id}"
+    return (
+        f"intent://twitter.com/i/web/status/{tweet_id}"
+        f"#Intent;package=com.twitter.android;scheme=https;"
+        f"S.browser_fallback_url={fallback};end;"
+    )
 
 def tw_open_button(tweet_id: str, label: str = "🐦 Open in X"):
     url = get_twitter_url(tweet_id)
-    st.markdown(f'<a href="{url}" target="_blank" class="custom-open-btn">{label}</a>', unsafe_allow_html=True)
+    st.markdown(f'<a href="{url}" class="custom-open-btn">{label}</a>', unsafe_allow_html=True)
 
 def extract_hashtags(text: str):
     return [t.lower() for t in re.findall(r"#(\w+)", text)]
@@ -589,7 +594,7 @@ def render_card_grid(filtered_df, per_page, page_key, key_prefix):
                 st.markdown('</div>', unsafe_allow_html=True)
 
             with c_open:
-                btn_html = f'<a href="{get_twitter_url(row["tweet_id"])}" target="_blank" class="custom-open-btn-inline">Open</a>'
+                btn_html = f'<a href="{get_twitter_url(row["tweet_id"])}" class="custom-open-btn-inline">Open</a>'
                 st.markdown(btn_html, unsafe_allow_html=True)
 
     pagination_row("bot")

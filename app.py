@@ -260,7 +260,8 @@ a.custom-open-btn-inline:active {
 # =========================
 
 def get_twitter_url(tweet_id: str) -> str:
-    return f"https://twitter.com/i/web/status/{tweet_id}"
+    # return f"https://twitter.com/i/web/status/{tweet_id}"
+    return f"twitter://status?id={tweet_id}"
 
 def _open_onclick(tweet_id: str) -> str:
     """

@@ -264,21 +264,16 @@ def get_twitter_url(tweet_id: str) -> str:
 
 def _open_onclick(tweet_id: str) -> str:
     """
-    onclick that tries the twitter:// native scheme on Android,
-    falls back to opening the https URL in a new tab on other platforms.
-    The href on the anchor acts as a last-resort fallback if JS is unavailable.
+    On Android: fire twitter:// in a new context so the current Streamlit
+    page is not navigated away from (avoids WebSocket disconnect/reload).
+    On other platforms: open the https URL in a new tab.
     """
     native = f"twitter://status?id={tweet_id}"
     web    = f"https://twitter.com/i/web/status/{tweet_id}"
     return (
         "event.preventDefault();"
         "if(/android/i.test(navigator.userAgent)){"
-        f"  var t=setTimeout(function(){{window.location.href='{web}';}},1500);"
-        "  document.addEventListener('visibilitychange',function h(){"
-        "    if(document.hidden){clearTimeout(t);}"
-        "    document.removeEventListener('visibilitychange',h);"
-        "  });"
-        f"  window.location.href='{native}';"
+        f"  window.open('{native}','_blank');"
         "} else {"
         f"  window.open('{web}','_blank');"
         "}"
